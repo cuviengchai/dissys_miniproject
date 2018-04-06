@@ -3,10 +3,10 @@ var router = express.Router();
 var User = require('../models/user.js');
 
 /* GET home page. */
-router.get('/auth', function(req, res, next) {
-  console.log(req.query.name);
+router.post('/auth', function(req, res, next) {
+  console.log(req.body.name);
   // console.log("chicke");
-  var query = {name:req.query.name};
+  var query = {name:req.body.name};
   User.find(query, function(err, users) {
     if(err) throw err
     if(users.length == 0){
