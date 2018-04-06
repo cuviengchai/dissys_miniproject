@@ -3,27 +3,82 @@ var axios = require('axios');
 var router = express.Router();
 var ip = require('../config/ip.js');
 
-/* GET home page. */
-router.post('/auth', function(req, res, next) {
-  // ACTIVE PRIMARY BACKEND
-  axios.post(ip.primaryBackend + '/auth', {name: req.body.name})
-  .then(function(response) {
-    console.log("primary backend active!");
-    res.send(response.data);
-  })
-  .catch(function(err) {
-    console.error(err);
+activeBackend = 1;
 
-    // ACTIVE SECONDARY BACKEND
-    axios.post(ip.secondaryBackend + '/auth', { name: req.body.name })
-    .then(function (response) {
-      console.log("secondary backend active!");
-      res.send(response.data);
-    })
-    .catach(function(err) {
-      console.error(err);
-      res.send('ERROR');
-    });
+postPaths = [
+  '/auth',
+  '/createGroup',
+  '/joinGroup',
+  '/leaveGroup',
+  '/sendMessage',
+];
+
+getPaths = [
+  '/getUserInfo',
+  '/getAllGroup',
+  '/getAllMessage',
+  '/getUnreadMessage',
+];
+
+postPaths.map(path => {
+  router.post(path, function (req, res, next) {
+    // ACTIVE PRIMARY BACKEND
+    axios.post(ip.primaryBackend + path, req.body )
+      .then(function (response) {
+        if (activeBackend === 2) {
+          console.log("primary backend is back and taking over the system");
+          activeBackend = 1;
+        }
+        res.send(response.data);
+      })
+      .catch(function (err) {
+
+        // ACTIVE SECONDARY BACKEND
+        axios.post(ip.secondaryBackend + path, req.body )
+          .then(function (response) {
+            if (activeBackend === 1) {
+              console.log("primary backend is inactived");
+              console.log("secondary backend is taking over the system");
+              activeBackend = 2;
+            }
+            res.send(response.data);
+          })
+          .catch(function (err) {
+            console.error(err);
+            res.send('ERROR');
+          });
+      });
+  });
+});
+
+getPaths.map(path => {
+  router.get(path, function (req, res, next) {
+    // ACTIVE PRIMARY BACKEND
+    axios.get(ip.primaryBackend + path, req.query)
+      .then(function (response) {
+        if (activeBackend === 2) {
+          console.log("primary backend is back and taking over the system");
+          activeBackend = 1;
+        }
+        res.send(response.data);
+      })
+      .catch(function (err) {
+
+        // ACTIVE SECONDARY BACKEND
+        axios.get(ip.secondaryBackend + path, req.query)
+          .then(function (response) {
+            if (activeBackend === 1) {
+              console.log("primary backend is inactived");
+              console.log("secondary backend is taking over the system");
+              activeBackend = 2;
+            }
+            res.send(response.data);
+          })
+          .catch(function (err) {
+            console.error(err);
+            res.send('ERROR');
+          });
+      });
   });
 });
 
