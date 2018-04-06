@@ -3,6 +3,7 @@ var router = express.Router();
 var User = require('../models/user.js');
 var Group = require('../models/group.js');
 var Message = require('../models/message.js');
+var Join = require('../models/join.js');
 
 /* GET home page. */
 router.post('/auth', function(req, res, next) {
@@ -49,7 +50,9 @@ router.get('/getAllGroup', function(req, res) {
 router.post('/createGroup', function(req, res){
   var query = {name:req.body.name};
   Group.find(query, function(err,groups){
-      if(err) console.log('group finding error');
+      if(err) {
+        console.log('group finding error');
+      }
       if(groups.length == 0){
         var group_model = new Group(query);
         group_model.save(function(err){
@@ -60,9 +63,26 @@ router.post('/createGroup', function(req, res){
       else{
           return res.send("GROUP EXISTED");
       }
-
   })
-  
+});
+
+router.post('/joinGroup', function(req, res){
+  var query = {_id:req.body.gid};
+  Group.find(query, function(err,groups){
+      if(err) throw err
+      if(groups.length == 0){
+        console.log("NOT FOUND GROUP");
+        return res.send("NOT FOUND");
+      }
+      else{
+        console.log("FOUND GROUP");
+        var join_model = new Join({_id:req.body.gid, uid:req.body.uid, read_at:0});
+        join_model.save(function(err){
+            if(err) throw err;
+        })
+        return res.send("EXISTED");
+      }
+  })
 });
 
 router.post('/sendMessage', function(req,res){
