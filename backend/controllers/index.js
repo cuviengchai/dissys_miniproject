@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/user.js');
 var Group = require('../models/group.js');
+var Message = require('../models/message.js');
 
 /* GET home page. */
 router.post('/auth', function(req, res, next) {
@@ -62,6 +63,27 @@ router.post('/createGroup', function(req, res){
 
   })
   
+});
+
+router.post('/sendMessage', function(req,res){
+  var Iuid = req.body.uid;
+  var Igid = req.body.gid;
+  var Icontent = req.body.content;
+  var query = Group.findOne({gid:Igid});
+  query.select('gid');
+  query.exec(function(err, group){
+    if(err) throw err;
+    else{
+      var message_model = new Message({uid:Iuid, gid:Igid, content:Icontent, send_at:Date.now()});
+      message_model.save(function(err){
+        if(err) {
+          res.send("ERROR SAVING MESSAGE");
+          throw err
+        }
+        res.send("MESSAGE SAVED")
+      })
+    }
+  })
 });
 
 module.exports = router;
