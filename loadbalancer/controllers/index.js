@@ -1,11 +1,12 @@
 var express = require('express');
 var axios = require('axios');
 var router = express.Router();
+var ip = require('../config/ip.js');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
 
-  axios.get('http://localhost:4000')
+  axios.get(ip.primaryBacked + '/')
   .then(function(response) {
     console.log(response);
     res.send(response.data);
