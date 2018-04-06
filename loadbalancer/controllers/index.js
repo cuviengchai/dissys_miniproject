@@ -5,7 +5,6 @@ var ip = require('../config/ip.js');
 
 /* GET home page. */
 router.post('/auth', function(req, res, next) {
-
   axios.post(ip.primaryBacked + '/auth', {name: req.body,name})
   .then(function(response) {
     console.log(response);

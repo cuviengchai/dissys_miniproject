@@ -1,46 +1,48 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component, Button } from "react";
 import axios from 'axios';
 
-class App extends Component {
+export default class Login extends Component {
 
   loadBalancerAddress = 'http://127.0.0.1:3000';
-
-  state = {
-    users: []
-  };
 
   constructor(props) {
     super(props);
 
-    let that = this;
+    this.state = {
+      username: ""
+    };
 
-    axios.get(this.loadBalancerAddress)
-    .then(function (response) {
-      console.log(response);
-      that.setState({
-        users: response.data
+    this.handleChange = this.handleChange.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
+
+  }
+
+  handleChange(event) {
+    this.setState({ username: event.target.value });
+  }
+
+  handleSubmit(event) {
+    axios.post(this.loadBalancerAddress + '/auth', { name: this.state.username })
+      .then(function (response) {
+        console.log(response);
       })
-    })
-    .catch(function (err) {
-      console.error(err);
-    });
+      .catch(function (err) {
+        console.error(err);
+      });
+    alert(this.state.username);
+    event.preventDefault();
+
   }
 
   render() {
     return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <h1 className="App-title">Welcome to React</h1>
-        </header>
-        <p className="App-intro">
-          {JSON.stringify(this.state.users)}
-        </p>
-      </div>
+      <form onSubmit={this.handleSubmit}>
+        <label>
+          Username
+					<input type="text" value={this.state.username} onChange={this.handleChange} />
+        </label>
+        <input type="submit" value="Login" />
+      </form>
     );
   }
 }
-
-export default App;
