@@ -5,14 +5,26 @@ var ip = require('../config/ip.js');
 
 /* GET home page. */
 router.post('/auth', function(req, res, next) {
-  axios.post(ip.primaryBacked + '/auth', {name: req.body,name})
+  
+  // ACTIVE PRIMARY BACKEND
+  axios.post(ip.primaryBackend + '/auth', {name: req.body,name})
   .then(function(response) {
-    console.log(response);
+    console.log("primary backend active!");
     res.send(response.data);
   })
   .catch(function(err) {
     console.error(err);
-    res.send('ERROR');
+
+    // ACTIVE SECONDARY BACKEND
+    axios.post(ip.secondaryBackend + '/auth', { name: req.body, name })
+    .then(function (response) {
+      console.log("secondary backend active!");
+      res.send(response.data);
+    })
+    .catach(function(err) {
+      console.error(err);
+      res.send('ERROR');
+    });
   })
 });
 
