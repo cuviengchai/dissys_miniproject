@@ -5,6 +5,8 @@ import axios from 'axios';
 
 class App extends Component {
 
+  loadBalancerAddress = 'http://127.0.0.1:3000';
+
   state = {
     users: []
   };
@@ -14,7 +16,7 @@ class App extends Component {
 
     let that = this;
 
-    axios.get('http://localhost:3000')
+    axios.get(this.loadBalancerAddress)
     .then(function (response) {
       console.log(response);
       that.setState({
