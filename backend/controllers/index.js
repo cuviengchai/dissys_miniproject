@@ -76,11 +76,12 @@ router.post('/joinGroup', function(req, res){
       }
       else{
         console.log("FOUND GROUP");
-        var join_model = new Join({_id:req.body.gid, uid:req.body.uid, read_at:0});
+        var join_model = new Join({uid:req.body.uid, gid:req.body.gid, read_at:0});
         join_model.save(function(err){
             if(err) throw err;
+            else
+              return res.send("EXISTED");
         })
-        return res.send("EXISTED");
       }
   })
 });
@@ -104,6 +105,20 @@ router.post('/sendMessage', function(req,res){
       })
     }
   })
+});
+
+router.get('/getUserInfo', function(req,res){
+  Join.find({uid:req.query.uid}, function(err, joins){
+    var result = [];
+    joins.map((join, index) => {
+      Group.find({_id:join.gid}, function(err, groups){
+        result.push(groups[0]);
+        if(index === joins.length - 1) {
+          res.send(result)
+        }
+      })
+    });
+  });
 });
 
 module.exports = router;
