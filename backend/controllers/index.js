@@ -51,14 +51,19 @@ router.post('/createGroup', function(req, res){
   var query = {name:req.body.name};
   Group.find(query, function(err,groups){
       if(err) {
-        console.log('group finding error');
+        console.log("group finding error");
       }
       if(groups.length == 0){
         var group_model = new Group(query);
-        group_model.save(function(err){
+        group_model.save(function(err, group){
             if(err) throw err;
+            var join_model = new Join({uid:req.body.uid, gid:group.id, read_at:0});
+            join_model.save(function(err){
+              if(err) throw err;
+              console.log("GROUP CREATED BY AN UID");
+              return res.send("GROUP CREATED");
+            })
         })
-        return res.send("GROUP CREATED");
       }
       else{
           return res.send("GROUP EXISTED");
