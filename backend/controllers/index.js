@@ -48,7 +48,7 @@ router.get('/getAllGroup', function(req, res) {
 });
 
 router.post('/createGroup', function(req, res){
-  var query = {name:req.body.name};
+  var query = {name:req.body.gname};
   Group.find(query, function(err,groups){
       if(err) {
         console.log("group finding error");
@@ -90,6 +90,20 @@ router.post('/joinGroup', function(req, res){
       }
   })
 });
+
+router.post('/leaveGroup',function(req,res){
+  var query = {uid:req.body.uid, gid:req.body.gid};
+  Join.remove(query,function(err,joins){
+    if (err) {
+      console.log("CANNOT LEAVE GROUP");
+      throw err
+    }
+    else
+      return res.send("LEAVE GROUP")
+    
+  });
+});
+
 
 router.post('/sendMessage', function(req,res){
   var Iuid = req.body.uid;
