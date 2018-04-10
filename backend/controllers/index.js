@@ -14,10 +14,10 @@ router.post('/auth', function(req, res, next) {
       var user_model = new User(query);
       user_model.save(function (err,userss){
         if(err) throw err
-        return res.send({"id": userss.id});
+        return res.send({"uid": userss.id});
       });
     }
-    else  return res.send({"id": users[0].id}); 
+    else  return res.send({"uid": users[0].id}); 
     });
 });
 
@@ -34,10 +34,8 @@ router.get('/getAllGroup', function(req, res) {
 router.post('/createGroup', function(req, res){
   var query = {name:req.body.gname};
   Group.find(query, function(err,groups){
-      if(err) {
-        console.log("group finding error");
-      }
-      if(groups.length == 0){
+      if(err) console.log("group finding error");
+      else if(groups.length == 0){
         var group_model = new Group(query);
         group_model.save(function(err, group){
             if(err) throw err;
@@ -45,12 +43,13 @@ router.post('/createGroup', function(req, res){
             join_model.save(function(err){
               if(err) throw err;
               console.log("GROUP CREATED BY AN UID");
-              return res.send("GROUP CREATED");
+              return res.send({"gid":group.id});
             })
         })
       }
       else{
-          return res.send("GROUP EXISTED");
+          console.log("GROUP ALREADY CREATED");
+          return res.send({"gid":groups[0].id});
       }
   })
 });
