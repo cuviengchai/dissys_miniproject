@@ -7,34 +7,18 @@ var Join = require('../models/join.js');
 
 /* GET home page. */
 router.post('/auth', function(req, res, next) {
-  console.log(req.body.name);
-  // console.log("chicke");
   var query = {name:req.body.name};
-  var obj;
   User.find(query, function(err, users) {
     if(err) throw err
-    if(users.length == 0){
+    else if(users.length == 0){
       var user_model = new User(query);
-      user_model.save(function (err){
-        if(err) {
-          console.log("db save unsuccessful.")
-        }
-        var query2 = User.findOne(query);
-      query2.exec(function(err, theUser){
-        if(err) throw err;
-        else {
-          obj = {"id":theUser._id };
-          res.send(obj);
-        }
-      });
+      user_model.save(function (err,userss){
+        if(err) throw err
+        return res.send({"id": userss.id});
       });
     }
-    else {
-      obj = { "id": users[0]._id};
-      return res.send(obj);
-    }
-
-  });
+    else  return res.send({"id": users[0].id}); 
+    });
 });
 
 router.get('/getAllGroup', function(req, res) {
