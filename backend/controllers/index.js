@@ -24,11 +24,8 @@ router.post('/auth', function(req, res, next) {
 router.get('/getAllGroup', function(req, res) {
   Group.find({}, function(err,groups){
     if(err) throw err;
-    else {
-      return res.send(groups);      
-    }
+    else return res.send(groups);      
   });
-  // console.log(query);
 });
 
 router.post('/createGroup', function(req, res){
@@ -77,42 +74,36 @@ router.post('/joinGroup', function(req, res){
 router.post('/leaveGroup',function(req,res){
   var query = {uid:req.body.uid, gid:req.body.gid};
   Join.remove(query,function(err,joins){
-    if (err) {
-      console.log("CANNOT LEAVE GROUP");
-      throw err
-    }
-    else
-      return res.send("LEAVE GROUP")
-    
+    if (err) return res.send("ERROR");
+    else return res.send("SUCCESS");
   });
 });
 
-
 router.post('/sendMessage', function(req,res){
-  var Iuid = req.body.uid;
-  var Igid = req.body.gid;
-  var Icontent = req.body.content;
-  var query = Group.findOne({gid:Igid});
-  query.select('gid');
+  var query = Group.findOne({gid:req.body.gid}).select('gid');
   query.exec(function(err, group){
     if(err) throw err;
     else{
-      var message_model = new Message({uid:Iuid, gid:Igid, content:Icontent, send_at:Date.now()});
+      var message_model = new Message({uid:req.body.uid, gid:req.body.gid, content:req.body.content, send_at:Date.now()});
       message_model.save(function(err){
         if(err) {
-          res.send("ERROR SAVING MESSAGE");
+          res.send("ERROR");
           throw err
         }
-        res.send("MESSAGE SAVED")
+        else res.send("SUCCESSS");
       })
     }
   })
 });
 
+
+
 router.get('/getUserInfo', function(req,res){
   Join.find({uid:req.query.uid}, function(err, joins){
     var result = [];
+    console.log(joins);
     joins.map((join, index) => {
+      console.log(join);
       Group.find({_id:join.gid}, function(err, groups){
         result.push(groups[0]);
         if(index === joins.length - 1) {
