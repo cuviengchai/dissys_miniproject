@@ -24,7 +24,9 @@ router.post('/auth', function(req, res, next) {
 router.get('/getAllGroup', function(req, res) {
   Group.find({}, function(err,groups){
     if(err) throw err;
-    else return res.send(groups);      
+    else {
+      return res.send(groups);      
+    }
   });
 });
 
@@ -79,6 +81,15 @@ router.post('/leaveGroup',function(req,res){
   });
 });
 
+router.get("/getAllMessage",function(req,res){
+  Message.find({gid:req.query.gid},function(err,messages){
+    if (err) throw err
+    else{
+      return res.send(messages);
+    }
+  });
+});
+
 router.post('/sendMessage', function(req,res){
   var query = Group.findOne({gid:req.body.gid}).select('gid');
   query.exec(function(err, group){
@@ -95,7 +106,6 @@ router.post('/sendMessage', function(req,res){
     }
   })
 });
-
 
 
 router.get('/getUserInfo', function(req,res){
