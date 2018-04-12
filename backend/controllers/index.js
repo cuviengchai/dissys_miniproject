@@ -124,4 +124,24 @@ router.get('/getUserInfo', function(req,res){
   });
 });
 
+router.post("/setReadAt",function(req,res){
+  console.log("READ AT METHOD")
+  Join.findOne({uid:req.body.uid, gid:req.body.gid},function(err,joins){
+    console.log(joins)
+    if (err) throw err
+    else if (joins == null) return res.send("ERROR");
+    else{
+      joins.set({read_at : Date.now()});
+      joins.save(function (err, update) {
+        if (err) throw err
+        else {
+          console.log(update);
+          return res.send("SUCCESS");
+        }
+      });
+    }    
+  });
+});
+
+
 module.exports = router;
