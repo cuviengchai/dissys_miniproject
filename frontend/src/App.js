@@ -35,14 +35,9 @@ class App extends Component {
     render() {
         return (
             <div style={{ width: '100%', height: '100vh' }}>
-<<<<<<< HEAD
                 {window.location.pathname === '/login' && <Login changeUid = { this.changeUid } />}
                 {window.location.pathname === '/main' && <Main uid = {this.state.uid} gid = {this.state.uid} changeGid = {this.changeGid}/>}
 
-=======
-                {window.location.pathname === '/login' && <Login />}
-                {window.location.pathname === '/main' && <Main />}
->>>>>>> Update UI
             </div>
         );
     }

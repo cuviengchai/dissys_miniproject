@@ -136,6 +136,7 @@ router.get('/getGroupUser', function (req, res) {
 // query: [gid (objectId)]
 // result: messages (array of object)
 router.get("/getAllMessage", function (req, res) {
+  console.log(req.query);
   Message.find({ gid: req.query.gid }, function (err, messages) {
     if (err) throw err
     else return res.send(messages);
@@ -185,7 +186,7 @@ router.post('/sendMessage', function (req, res) {
         }
         else {
           User.find({ _id: message_model.uid }, (err, users) => {
-            let message = {...result._doc};
+            let message = result._doc;
             message.user = users[0];
             res.send({ message: message });
           });
