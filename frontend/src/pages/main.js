@@ -6,11 +6,43 @@ import Cookies from 'universal-cookie';
 
 const cookies = new Cookies();
 class Main extends Component {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            text: "xx"
+        };
+
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(event) {
+        this.setState({text: event.target.value});
+    }
+
     onLogOutClick = () => {
         cookies.remove('isAuthen');
         cookies.remove('username');
         window.location.assign('');
     }
+
+    sendText = () => {
+      // axios.post(this.loadBalancerAddress + '/sendMessage', { uid:this.props.uid,gid:,this.props.gid,content : this.state.text })
+      //   .then(function (response) {
+      //     console.log(response);
+      //     if( response == “SUCCESS” ){
+      //       this.setState({text:""})
+      //     }
+
+      //   })
+      //   .catch(function (err) {
+      //     console.error(err);
+      //   });
+     
+        this.setState({text:""})
+    }
+
+
 
     render() {
         return (
@@ -28,13 +60,13 @@ class Main extends Component {
                         <div className="content" id="content">
 
                             <div className="message-wrapper me">
-                                asdasdsadsad
+                                {this.state.text}
                             </div>
                         </div>
                     </div>
                     <div className="bottom" id="bottom">
-                        <textarea className="input" id="input"></textarea>
-                        <div className="send" id="send"></div>
+                        <textarea className="input" id="input" value={this.state.text} onChange={this.handleChange}></textarea>
+                        <div className="send" id="send" onClick = {this.sendText}></div>
                     </div>
                 </div>
                 <div style={{ top: 0, right: 0, margin: 'auto' }}>

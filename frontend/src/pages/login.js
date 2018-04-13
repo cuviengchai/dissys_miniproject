@@ -22,7 +22,7 @@ export default class Login extends Component {
       // axios.post(this.loadBalancerAddress + '/auth', { name: this.state.username })
       //   .then(function (response) {
       //     console.log(response);
-      //     that.props.changePage("grouplist") ;
+      //     this.props.changeUid(respose) ;
       //   })
       //   .catch(function (err) {
       //     console.error(err);
