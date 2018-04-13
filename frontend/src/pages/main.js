@@ -30,7 +30,8 @@ class Main extends Component {
         groupList: [],
         isShowingModal: false,
         newGroupName: '',
-        selectedGroupID: '', 
+        selectedGroupID: '',
+        selectGroupName: '', 
     };
     componentDidMount() {
         this.socket.on('chat', (result) => {
@@ -55,8 +56,8 @@ class Main extends Component {
         });
     }
 
-    selectGroup = (gid) => {
-        this.setState({ selectedGroupID: gid });
+    selectGroup = (gid, gname) => {
+        this.setState({ selectedGroupID: gid, selectGroupName: gname });
         console.log(gid);
     }
 
@@ -217,7 +218,7 @@ class Main extends Component {
                             <nav className="nav" id="nav">
                                 <div className="default-nav">
                                     <div className="main-nav">
-                                        <div className="main-nav-item"><a className="main-nav-item-link" href="#">{'Group Name'}</a></div>
+                                        <div className="main-nav-item"><a className="main-nav-item-link" href="#">{this.state.selectGroupName}</a></div>
                                         <div className="options"></div>
                                     </div>
                                 </div>

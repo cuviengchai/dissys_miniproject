@@ -21,7 +21,7 @@ class GroupRow extends Component {
     
     render() {
         return (
-            <div style={{ width: '100%', height: '98px' }} onClick={() => this.props.onClick(this.props.gid)}>
+            <div style={{ width: '100%', height: '98px' }} onClick={() => this.props.onClick(this.props.gid, this.props.name)}>
                 <div style={{ marginBottom: '1px', width: '100%', height: '96px', padding: '16px', cursor: 'pointer', backgroundColor: this.state.onHover || this.props.isSelected ? 'rgba(0, 0, 0, 0.1)' : '#f2f2f2' }} onMouseOver={this.onHover} onMouseOut={this.onOut}>
                     <div style={{  fontSize: '18px',  display: 'inline-block' }}>{`${this.props.name} (${this.props.groupNumber})`}</div> 
                     <div style={{  fontSize: '12px', paddingTop: '8px', color: 'rgba(0, 0, 0, 0.5)' }}>{`${this.props.lastMessage.substr(0, min(this.props.lastMessage.length, 48))}${this.props.lastMessage.length >= 48 ? `...` : ``}`}</div> 
