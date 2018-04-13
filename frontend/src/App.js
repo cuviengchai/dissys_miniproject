@@ -1,15 +1,26 @@
-import React, { Component, Button } from "react";
+import React, { Component } from 'react';
+
+import Cookies from 'universal-cookie';
 import Login from './pages/login';
+import Main from './pages/main';
 
-export default class App extends Component {
+const cookies = new Cookies();
+class App extends Component {
+    componentDidMount() {
+        if(window.location.pathname !== '/login' && cookies.get('isAuthen') !== 'true') {
+            window.location.assign('login');
+        }
+    }
 
-    state = {
-        page: 'login'
-    };
+    render() {
+        return (
+            <div style={{ width: '100%', height: '100vh' }}>
+                {window.location.pathname === '/login' && <Login />}
+                {window.location.pathname === '/main' && <Main />}
 
-    render = () => (
-        <div>
-        {this.state.page === 'login' && <Login />}
-        </div>
-    );
+            </div>
+        );
+    }
 }
+
+export default App;
