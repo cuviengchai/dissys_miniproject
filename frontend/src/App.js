@@ -25,17 +25,24 @@ class App extends Component {
     }
 
     componentDidMount() {
-        if(window.location.pathname !== '/login' && cookies.get('isAuthen') !== 'true') {
+        if (window.location.pathname !== '/login' && cookies.get('isAuthen') !== 'true') {
             window.location.assign('login');
+        } else if (window.location.pathname !== '/main' && cookies.get('isAuthen') === 'true') {
+            window.location.assign('main');
         }
     }
 
     render() {
         return (
             <div style={{ width: '100%', height: '100vh' }}>
+<<<<<<< HEAD
                 {window.location.pathname === '/login' && <Login changeUid = { this.changeUid } />}
                 {window.location.pathname === '/main' && <Main uid = {this.state.uid} gid = {this.state.uid} changeGid = {this.changeGid}/>}
 
+=======
+                {window.location.pathname === '/login' && <Login />}
+                {window.location.pathname === '/main' && <Main />}
+>>>>>>> Update UI
             </div>
         );
     }

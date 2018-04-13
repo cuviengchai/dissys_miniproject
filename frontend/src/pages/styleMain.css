@@ -8,23 +8,25 @@
 }
 
 .wrapper {
-  height: 50vh;
-  width: 50%;
+  height: calc(100vh - 112px);
+  width: 100%;
   
   overflow: hidden;
   background-color: white;
-  position: fixed;
-  top: 100px;
-  left: 50%;
-  -webkit-transform: translateX(-50%);
-          transform: translateX(-50%);
   box-shadow: 0px 3px 3px 0px rgba(50, 50, 50, 0.5);
-  transition: 0.3s ease;
 }
 .wrapper .inner {
   overflow: scroll;
-  height: 520px;
-  padding-top: 64px;
+  height: calc(100vh - 240px);
+  padding-top: 0px;
+  background: #f2f2f2;
+  -ms-overflow-style: none;
+  overflow: -moz-scrollbars-none;
+}
+.wrapper .myInner {
+  overflow: scroll;
+  height: calc(100vh - 176px);
+  padding-top: 0px;
   background: #f2f2f2;
   -ms-overflow-style: none;
   overflow: -moz-scrollbars-none;
@@ -39,18 +41,13 @@
 }
 
 .nav {
-  position: fixed;
   top: 0;
-  left: 0;
-  right: 0;
   height: 64px;
   z-index: 100;
-  transition: 0.3s ease;
 }
 .nav .default-nav {
   height: 64px;
   width: 100%;
-  position: absolute;
   left: 0;
   top: 0;
   z-index: 110;
@@ -58,10 +55,8 @@
   border-bottom: 3px solid #17c;
   color: #ffffff;
   box-shadow: 0px 3px 3px 0px rgba(50, 50, 50, 0.1);
-  transition: 0.3s ease;
 }
 .nav .default-nav .main-nav {
-  position: absolute;
   left: 0;
   width: 100%;
   height: 64px;
@@ -69,7 +64,6 @@
   margin: 0;
   padding: 0;
   list-style: none;
-  transition: 0.3s ease;
 }
 .nav .default-nav .main-nav .toggle {
   height: 32px;
@@ -84,11 +78,10 @@
 }
 .nav .default-nav .main-nav .options {
   height: 32px;
-  width: 32px;
-  background: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/104946/ic_more_vert_white_48dp.png);
+  width: 128px;
   background-size: contain;
   margin: 16px;
-  position: absolute;
+  float: right;
   right: 0;
 }
 .nav .default-nav .main-nav .options:hover {
@@ -101,7 +94,6 @@
   margin-right: 50px;
   position: relative;
   line-height: 64px;
-  transition: 0.3s ease;
 }
 .nav .default-nav .main-nav .main-nav-item .main-nav-item-link {
   display: block;
@@ -112,26 +104,22 @@
   line-height: 64px;
   text-decoration: none;
   color: inherit;
-  transition: 0.3s ease;
 }
 
 .bottom {
-  position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
   height: 64px;
   background: #ffffff;
-  /* box-shadow: 0px -3px 3px 0px rgba(50, 50, 50, 0.1); */
+  box-shadow: 0px -3px 3px 0px rgba(50, 50, 50, 0.1);
 }
 .bottom .input {
   height: 64px;
   background: #ffffff;
   border: none;
   width: calc(100% - 64px);
-  position: absolute;
   left: 0;
-  top: 0;
   padding: 0 5%;
   resize: none;
   overflow: scroll;
@@ -140,35 +128,26 @@
   -ms-overflow-style: none;
   overflow: -moz-scrollbars-none;
 }
-.bottom .input:focus {
-  outline: none;
-}
-.bottom .input::-webkit-scrollbar {
-  width: 0 !important;
-}
 .bottom .send {
-  position: fixed;
   height: 42.6666666667px;
   width: 42.6666666667px;
   border-radius: 50%;
+  margin-top: 8px;
+  margin-right: 8px;
   border: 0;
   background:  #28d;
   color: #ffffff;
   bottom: 10.6666666667px;
+  float: right;
   right: 10.6666666667px;
 }
 .bottom .send:before {
   content: '';
+
+  height: 42.6666666667px;
+  width: 42.6666666667px;
   background: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/104946/ic_send_white_48dp.png) no-repeat center center;
   background-size: 25.6px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-}
-.bottom .send:focus {
-  outline: none;
 }
 .bottom .send:hover {
   cursor: pointer;
@@ -212,7 +191,6 @@
 .message-wrapper.them .text-wrapper:before {
   border-width: 0 10px 10px 0;
   border-color: transparent  #28d transparent transparent;
-  position: absolute;
   top: 0;
   left: -9px;
 }
@@ -227,7 +205,6 @@
 .message-wrapper.me .text-wrapper:before {
   border-width: 10px 10px 0 0;
   border-color: #ffffff transparent transparent transparent;
-  position: absolute;
   top: 0;
   right: -9px;
 }
@@ -246,4 +223,16 @@
     height: 100%;
     height: 100vh;
   }
+}
+
+.no-padding-right {
+  padding: 48px;
+  padding-right: 0;
+  padding-top: 0;
+}
+
+.no-padding-left {
+  padding: 48px;
+  padding-left: 0;
+  padding-top: 0;
 }
