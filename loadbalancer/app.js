@@ -6,10 +6,17 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var cors = require('cors');
 
+var app = express();
+
+var io = require('socket.io')();
+io.on('connection', function (client) {
+  console.log('user connected.');
+});
+io.listen(3001);
+global.io = io;
+
 // controllers
 var indexController = require('./controllers/index');
-
-var app = express();
 
 app.use(cors());
 

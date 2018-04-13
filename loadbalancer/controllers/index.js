@@ -23,24 +23,26 @@ getPaths = [
 postPaths.map(path => {
   router.post(path, function (req, res, next) {
     // ACTIVE PRIMARY BACKEND
-    axios.post(ip.primaryBackend + path, req.body )
+    axios.post(ip.primaryBackend + path, req.body)
       .then(function (response) {
         if (activeBackend === 2) {
           console.log("primary backend is back and taking over the system");
           activeBackend = 1;
         }
+        if (path === '/sendMessage') io.emit('chat', { message: response.data.message });
         res.send(response.data);
       })
       .catch(function (err) {
 
         // ACTIVE SECONDARY BACKEND
-        axios.post(ip.secondaryBackend + path, req.body )
+        axios.post(ip.secondaryBackend + path, req.body)
           .then(function (response) {
             if (activeBackend === 1) {
               console.log("primary backend is inactived");
               console.log("secondary backend is taking over the system");
               activeBackend = 2;
             }
+            if (path === '/sendMessage') io.emit('chat', { message: response.data.message });
             res.send(response.data);
           })
           .catch(function (err) {
