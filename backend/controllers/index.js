@@ -171,7 +171,7 @@ router.get('/viewUnreadMessages', function (req, res) {
 });
 
 // body: [uid (objectId), gid (objectId), content (string)]
-// result: [“SUCCESS” / “ERROR”]
+// result: [message]
 router.post('/sendMessage', function (req, res) {
   var query = Group.findOne({ gid: req.body.gid }).select('gid');
   query.exec(function (err, group) {
