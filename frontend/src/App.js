@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import Cookies from '/frontend/universal-cookie';
+import Cookies from 'universal-cookie';
 import Login from './pages/login';
 import Main from './pages/main';
 
