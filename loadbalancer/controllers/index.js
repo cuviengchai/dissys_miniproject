@@ -56,7 +56,8 @@ postPaths.map(path => {
 getPaths.map(path => {
   router.get(path, function (req, res, next) {
     // ACTIVE PRIMARY BACKEND
-    axios.get(ip.primaryBackend + path, req.query)
+    console.log(req.query);
+    axios.get(ip.primaryBackend + path, { params: req.query} )
       .then(function (response) {
         if (activeBackend === 2) {
           console.log("primary backend is back and taking over the system");

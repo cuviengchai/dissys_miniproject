@@ -25,8 +25,10 @@ class App extends Component {
     }
 
     componentDidMount() {
-        if(window.location.pathname !== '/login' && cookies.get('isAuthen') !== 'true') {
+        if (window.location.pathname !== '/login' && cookies.get('isAuthen') !== 'true') {
             window.location.assign('login');
+        } else if (window.location.pathname !== '/main' && cookies.get('isAuthen') === 'true') {
+            window.location.assign('main');
         }
     }
 

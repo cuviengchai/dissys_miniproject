@@ -1,11 +1,11 @@
 import './style.css';
 
 import React, { Button, Component } from "react";
-import io from 'socket.io-client';
-import IpList from '../config/ip';
 
 import Cookies from 'universal-cookie';
+import IpList from '../config/ip';
 import axios from 'axios';
+import io from 'socket.io-client';
 
 const cookies = new Cookies();
 export default class Login extends Component {
