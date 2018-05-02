@@ -14,7 +14,6 @@ import Message from '../Message';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import io from 'socket.io-client';
-import MessageList from '../messagelist'
 
 const cookies = new Cookies();
 const querystring = require('querystring');
@@ -86,9 +85,10 @@ class Main extends Component {
         let messages = this.state.messages;
         await this.state.groupList.map((group) => {
             axios.get(IpList.loadBalancer + '/getAllMessage', { params: { gid: group._id } }).then(function (response) {
-                response.data.map((message) => {
+                console.log(response.data);
+                response.data.messages.map((message) => {
                     console.log(message);
-                    message = { ...message, user: { uid: message.uid } };
+                    message = { ...message, user: { uid: message.uid , username:message.user.name} };
                     messages.push(message);
                 })
                 let lastMessage = this.state.lastMessage;
@@ -163,14 +163,14 @@ class Main extends Component {
         });
 
         this.setState({ text: '' });
-        console.log("FF");
-        axios.get(IpList.loadBalancer + '/getAllMessage?gid=' + this.state.selectedGroupID).then(function (response) {
-            console.log("START");
-            console.log(response.data);
-        }.bind(this)).catch(function (err) {
-            // console.error(err);
-            console.log(err);
-        });
+        // console.log("FF");
+        // axios.get(IpList.loadBalancer + '/getUserInfo', {uid:"5ae89ac759be59648e4ddd11"}).then(function (response) {
+        //     console.log("START");
+        //     console.log(response.data);
+        // }.bind(this)).catch(function (err) {
+        //     // console.error(err);
+        //     console.log("fail");
+        // });
        
     }
 
@@ -276,9 +276,7 @@ class Main extends Component {
                                                 if (this.state.selectedGroupID === message.gid) {
                                                 return (
                                                     
-                                                    
-                                                    
-                                                    <Message name = {cookies.get('uid')} id={index} key={message._id} user={message.user} message={message.content} isMe={message.uid === cookies.get('uid')} />
+                                                    <Message name = {message.user.username} id={index} key={message._id} user={message.user} message={message.content} isMe={message.uid === cookies.get('uid')} />
                                                     
                                                 );
                                                 }   
