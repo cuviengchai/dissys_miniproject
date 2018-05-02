@@ -138,8 +138,32 @@ router.get('/getGroupUser', function (req, res) {
 router.get("/getAllMessage", function (req, res) {
   console.log(req.query);
   Message.find({ gid: req.query.gid }, function (err, messages) {
-    if (err) throw err
-    else return res.send(messages);
+
+    if (err) res.send('FAIL');
+    else {
+      let promises = [];
+
+      promises = messages.map(message => {
+        return new Promise((resolve, reject) => {
+          User.findById(message.uid, (err, user) => {
+            if(err) {
+              console.error(err);
+              reject()
+            }
+            else {
+              message._doc.user = user;
+              resolve();
+            }
+          });
+        });
+      });
+
+      Promise.all(promises).then(() => {
+        res.send({messages: messages});
+      }).catch((err) => {
+        res.send('FAIL');
+      });
+    }
   });
 });
 
@@ -160,12 +184,30 @@ router.get('/viewUnreadMessages', function (req, res) {
       console.log(join);
     read_at = join.read_at;
     Message.find({ send_at: { $gt: read_at } }).sort('send_at').exec(function (err, messages) {
-      if (err) {
-        console.log('ERROR RETRIEVING UNREAD MESSAGES');
-        throw err;
-      }
+      if (err) throw err
       else {
-        return res.send(messages);
+        let promises = [];
+
+        promises = messages.map(message => {
+          return new Promise((resolve, reject) => {
+            User.findById(message.uid, (err, user) => {
+              if(err) {
+                console.error(err);
+                reject()
+              }
+              else {
+                message._doc.user = user;
+                resolve();
+              }
+            });
+          });
+        });
+
+        Promise.all(promises).then(() => {
+          res.send({messages: messages});
+        }).catch((err) => {
+          res.send('FAIL');
+        });
       }
     });
   });
