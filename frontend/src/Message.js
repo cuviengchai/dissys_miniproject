@@ -19,9 +19,13 @@ class Message extends Component {
     
     render() {
         return (
-            <div style={{ width: '100%', height: '80px', padding: '16px', marginBottom: '1px', paddingBottom: 0 }}>
-                <div style={{ float: this.props.isMe ? 'right' : 'left', height: '64px', borderRadius: '8px', fontSize: 18, padding: '16px', cursor: 'pointer', backgroundColor: 'rgba(0, 0, 0, 0.2)', display: 'inline-block' }} onMouseOver={this.onHover} onMouseOut={this.onOut}>
-                    {this.props.message}
+            <div style={{ width: '100%', height: '96px', padding: '16px', marginBottom: '1px', paddingBottom: 0 }}>
+                
+                <div style={{ float: this.props.isMe ? 'right' : 'left', height: '100%', fontSize: 18, cursor: 'pointer', display: 'inline-block' }} onMouseOver={this.onHover} onMouseOut={this.onOut}>
+                    <div style={{ float: this.props.isMe ? 'right' : 'left', marginBottom: '24px' }}>
+                        {this.props.name}
+                    </div>
+                    <div style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)', width: '100%', height: '64px', borderRadius: '8px', padding: '16px', marginTop: '32px'}}>{this.props.message}</div>
                 </div>
             </div>
         );
