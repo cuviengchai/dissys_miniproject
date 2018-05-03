@@ -1,6 +1,9 @@
 import './styleMain.css';
 import './style.css';
 
+import * as Scroll from 'react-scroll';
+import { Link, Element , Events, animateScroll as scroll, scrollSpy, scroller } from 'react-scroll'
+
 import { ModalContainer, ModalDialog } from 'react-modal-dialog';
 import React, { Component } from 'react';
 
@@ -19,9 +22,13 @@ class Main extends Component {
     socket = io(IpList.socketServer);
     
     state = {
+        isJoin : [],
         text: '',
         messages: [],
         lastMessage: {
+
+        },
+        unread: {
 
         },
         nameOfuser: {
@@ -37,26 +44,48 @@ class Main extends Component {
         this.socket.on('chat', (result) => {
             let messages = this.state.messages.slice();
             let lastMessage = this.state.lastMessage;
-            messages.push(result.message);
+            //  message = { ...message, user: { uid: message.uid , username:message.user.name} };
+            messages.push( { ...result.message ,user: { uid: result.message.uid , username:result.message.user.name} });
+            console.log(result);
             lastMessage[result.message.gid] = result.message.content;
             console.log(lastMessage[result.message.uid], result.message.uid);
             this.setState({ messages, lastMessage });
             console.log(result.message);
         });
         this.getAllGroup();
-        console.log(cookies.get('uid'));
+        console.log("! "+cookies.get('uid'));
+        const node = this.refs.trackerRef;
+        node && node.scrollIntoView({block: "end"})
+        
 
     }
     getAllUser = () => {
         axios.get(IpList.loadBalancer + '/getAllGroup').then(function (response) {
             this.setState({ groupList: response.data }, this.getMessage)
-            console.log('GET GROUP SUCCESS');
+            console.log(response.data);
         }.bind(this)).catch(function (err) {
             console.error(err);
         });
     }
 
     selectGroup = (gid, gname) => {
+        // console.log("!! " + this.state.isJoin[gid]);
+        if( this.state.isJoin[gid] == undefined ){
+            var nJ = this.state.isJoin ; 
+            axios.post(IpList.loadBalancer + '/joinGroup',{uid :cookies.get('uid'), gid}).then(function (response) {
+                console.log('JOIN GROUP SUCCESS');
+                nJ[gid] = 1 ; 
+                this.setState( {isJoin : nJ})
+                axios.post(IpList.loadBalancer + '/setReadAt', { uid: cookies.get('uid'), gid }).then(() => {
+                    console.log('set');
+                });
+            }.bind(this)).catch(function (err) {
+                console.error(err);
+            });
+
+             
+        }
+        
         this.setState({ selectedGroupID: gid, selectGroupName: gname });
         console.log(gid);
     }
@@ -64,19 +93,27 @@ class Main extends Component {
     getMessage = async () => {
         let messages = this.state.messages;
         await this.state.groupList.map((group) => {
-            axios.get(IpList.loadBalancer + '/getAllMessage', { params: { gid: group._id } }).then(function (response) {
-                response.data.map((message) => {
-                    console.log(message);
-                    message = { ...message, user: { uid: message.uid } };
-                    messages.push(message);
-                })
-                let lastMessage = this.state.lastMessage;
-                lastMessage[group._id] = response.data[response.data.length - 1].content;
-                console.log(lastMessage);
-                this.setState({ lastMessage });
-            }.bind(this)).catch(function (err) {
-                console.error(err);
-            });
+            // console.log('sdasdsadsadsadsa')
+            axios.get(IpList.loadBalancer + '/viewUnreadMessages?uid=' + cookies.get('uid') + '&gid=' + group._id).then((res) => {
+                console.log(res)
+                axios.get(IpList.loadBalancer + '/getAllMessage', { params: { gid: group._id } }).then(function (response) {
+                    console.log(response.data);
+                    response.data.messages.map((message) => {
+                        console.log(message);
+                        message = { ...message, user: { uid: message.uid , username:message.user.name} };
+                        messages.push(message);
+                    })
+                    let lastMessage = this.state.lastMessage;
+                    let unread = this.state.unread;
+                    console.log(unread);
+                    unread[group._id] = res.data.messages.length;
+                    lastMessage[group._id] = response.data.messages[response.data.messages.length - 1].content;
+                    console.log(lastMessage, unread);
+                    this.setState({ lastMessage, unread });
+                }.bind(this)).catch(function (err) {
+                    console.error(err);
+                });
+            }, (err) => { console.log(err)});
         })
         console.log(messages);
         this.setState({ messages });
@@ -84,12 +121,20 @@ class Main extends Component {
 
     getAllGroup = () => {
         axios.get(IpList.loadBalancer + '/getAllGroup').then(function (response) {
-            this.setState({ groupList: response.data }, this.getMessage)
+            console.log( response.data);
+            this.setState({ groupList: response.data }, this.getMessage);
             console.log('GET GROUP SUCCESS');
+
         }.bind(this)).catch(function (err) {
             console.error(err);
+
         });
     }
+
+  componentDidUpdate() {
+    const node = this.refs.trackerRef;
+    node && node.scrollIntoView({block: "end"})
+  }
 
     handleChange = (event) => this.setState({ text: event.target.value });
     
@@ -118,6 +163,13 @@ class Main extends Component {
     handleClose = () => this.setState({ isShowingModal: false });
 
     sendText = () => {
+        scroller.scrollTo('Message', {
+            duration: 1500,
+            delay: 100,
+            smooth: true,
+            containerId: this.state.messages.length-1,
+            offset: 50, // Scrolls to element + 50 pixels down the page
+          });
         axios.post(IpList.loadBalancer + '/sendMessage', {
             uid: cookies.get('uid'),
             gid: this.state.selectedGroupID, // CHANGE gid MANUALLY
@@ -125,14 +177,20 @@ class Main extends Component {
         }).then(function (response) {
             console.log('SUCCESS');
         }).catch(function (err) {
-            console.error(err);
+            console.log(err);
         });
 
         this.setState({ text: '' });
-
+        // console.log("FF");
+        // axios.get(IpList.loadBalancer + '/getUserInfo', {uid:"5ae89ac759be59648e4ddd11"}).then(function (response) {
+        //     console.log("START");
+        //     console.log(response.data);
+        // }.bind(this)).catch(function (err) {
+        //     // console.error(err);
+        //     console.log("fail");
+        // });
+       
     }
-
-
 
     render() {
         return (
@@ -199,15 +257,15 @@ class Main extends Component {
                             </nav>
                             <div className="myInner" id="inner">
                                 {
-                                    this.state.groupList.map((group) => {
-                                        return <GroupRow 
+                                    this.state.groupList.map( (group) => {
+                                        return (<GroupRow 
                                                     name={group.name}
                                                     gid={group._id} 
-                                                    groupNumber={2} 
+                                                    groupNumber={this.state.unread[group._id]} 
                                                     isSelected={this.state.selectedGroupID == group._id}
                                                     lastMessage={this.state.lastMessage[group._id] || '...'} 
                                                     onClick={this.selectGroup}
-                                                />
+                                                />);
                                     })
                                 }
                             </div>
@@ -232,12 +290,22 @@ class Main extends Component {
                                     <div className="inner" id="inner">
                                         {
                                             
-                                            this.state.messages.map(message => {
+                                            this.state.messages.map((message, index) => {
                                                 if (this.state.selectedGroupID === message.gid) {
-                                                    return <Message key={message._id} user={message.user} message={message.content} isMe={message.uid === cookies.get('uid')} />;
+                                                    return (
+                                                        <Message name = {message.user.username} id={index} key={message._id} user={message.user} message={message.content} isMe={message.uid === cookies.get('uid')} />
+                                                    );
                                                 }   
                                             })
+                                            // <MessageList
+                                            //     items={this.state.messages}
+                                            //     onScrolled={e => console.log('the list was scrolled!')}
+                                            //     onScrolledTop={e => alert('scrolled to top!')}
+                                            // />
                                         }
+
+
+        <div style={{height: '30px'}} id='#tracker' ref="trackerRef"></div>
                                     </div>
                                     
                                     <div className="bottom" id="bottom">

@@ -110,8 +110,9 @@ router.post('/leaveGroup', function (req, res) {
 // result: groups (array of object)
 router.get('/getAllGroup', function (req, res) {
   Group.find({}, function (err, groups) {
-    if (err) throw err;
-    else {
+    if (err) {
+      throw err;
+    }else {
       return res.send(groups);
     }
   });
@@ -123,8 +124,9 @@ router.get('/getGroupUser', function (req, res) {
   result = []
   Join.find({ gid: req.query.gid }, function (err, joins) {
     console.log(joins);
-    if (err) throw err
-    else {
+    if (err) {
+      throw err
+    } else {
       joins.map((join, index) => {
         result.push({ "uid": join.uid });
         if (index === joins.length - 1) return res.send(result);
