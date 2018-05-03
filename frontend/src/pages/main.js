@@ -28,6 +28,9 @@ class Main extends Component {
         lastMessage: {
 
         },
+        unread: {
+
+        },
         nameOfuser: {
 
         },
@@ -41,7 +44,9 @@ class Main extends Component {
         this.socket.on('chat', (result) => {
             let messages = this.state.messages.slice();
             let lastMessage = this.state.lastMessage;
-            messages.push(result.message);
+            //  message = { ...message, user: { uid: message.uid , username:message.user.name} };
+            messages.push( { ...result.message ,user: { uid: result.message.uid , username:result.message.user.name} });
+            console.log(result);
             lastMessage[result.message.gid] = result.message.content;
             console.log(lastMessage[result.message.uid], result.message.uid);
             this.setState({ messages, lastMessage });
@@ -57,7 +62,7 @@ class Main extends Component {
     getAllUser = () => {
         axios.get(IpList.loadBalancer + '/getAllGroup').then(function (response) {
             this.setState({ groupList: response.data }, this.getMessage)
-            console.log('GET GROUP SUCCESS');
+            console.log(response.data);
         }.bind(this)).catch(function (err) {
             console.error(err);
         });
@@ -67,13 +72,17 @@ class Main extends Component {
         // console.log("!! " + this.state.isJoin[gid]);
         if( this.state.isJoin[gid] == undefined ){
             var nJ = this.state.isJoin ; 
-            axios.post(IpList.loadBalancer + '/joinGroup',{uid :cookies.get('uid'), gid:gid}).then(function (response) {
+            axios.post(IpList.loadBalancer + '/joinGroup',{uid :cookies.get('uid'), gid}).then(function (response) {
                 console.log('JOIN GROUP SUCCESS');
                 nJ[gid] = 1 ; 
                 this.setState( {isJoin : nJ})
+                axios.post(IpList.loadBalancer + '/setReadAt', { uid: cookies.get('uid'), gid }).then(() => {
+                    console.log('set');
+                });
             }.bind(this)).catch(function (err) {
                 console.error(err);
             });
+
              
         }
         
@@ -84,20 +93,27 @@ class Main extends Component {
     getMessage = async () => {
         let messages = this.state.messages;
         await this.state.groupList.map((group) => {
-            axios.get(IpList.loadBalancer + '/getAllMessage', { params: { gid: group._id } }).then(function (response) {
-                console.log(response.data);
-                response.data.messages.map((message) => {
-                    console.log(message);
-                    message = { ...message, user: { uid: message.uid , username:message.user.name} };
-                    messages.push(message);
-                })
-                let lastMessage = this.state.lastMessage;
-                lastMessage[group._id] = response.data[response.data.length - 1].content;
-                console.log(lastMessage);
-                this.setState({ lastMessage });
-            }.bind(this)).catch(function (err) {
-                console.error(err);
-            });
+            // console.log('sdasdsadsadsadsa')
+            axios.get(IpList.loadBalancer + '/viewUnreadMessages?uid=' + cookies.get('uid') + '&gid=' + group._id).then((res) => {
+                console.log(res)
+                axios.get(IpList.loadBalancer + '/getAllMessage', { params: { gid: group._id } }).then(function (response) {
+                    console.log(response.data);
+                    response.data.messages.map((message) => {
+                        console.log(message);
+                        message = { ...message, user: { uid: message.uid , username:message.user.name} };
+                        messages.push(message);
+                    })
+                    let lastMessage = this.state.lastMessage;
+                    let unread = this.state.unread;
+                    console.log(unread);
+                    unread[group._id] = res.data.messages.length;
+                    lastMessage[group._id] = response.data.messages[response.data.messages.length - 1].content;
+                    console.log(lastMessage, unread);
+                    this.setState({ lastMessage, unread });
+                }.bind(this)).catch(function (err) {
+                    console.error(err);
+                });
+            }, (err) => { console.log(err)});
         })
         console.log(messages);
         this.setState({ messages });
@@ -105,8 +121,10 @@ class Main extends Component {
 
     getAllGroup = () => {
         axios.get(IpList.loadBalancer + '/getAllGroup').then(function (response) {
-            this.setState({ groupList: response.data }, this.getMessage)
+            console.log( response.data);
+            this.setState({ groupList: response.data }, this.getMessage);
             console.log('GET GROUP SUCCESS');
+
         }.bind(this)).catch(function (err) {
             console.error(err);
 
@@ -239,15 +257,15 @@ class Main extends Component {
                             </nav>
                             <div className="myInner" id="inner">
                                 {
-                                    this.state.groupList.map((group) => {
-                                        return <GroupRow 
+                                    this.state.groupList.map( (group) => {
+                                        return (<GroupRow 
                                                     name={group.name}
                                                     gid={group._id} 
-                                                    groupNumber={2} 
+                                                    groupNumber={this.state.unread[group._id]} 
                                                     isSelected={this.state.selectedGroupID == group._id}
                                                     lastMessage={this.state.lastMessage[group._id] || '...'} 
                                                     onClick={this.selectGroup}
-                                                />
+                                                />);
                                     })
                                 }
                             </div>
@@ -274,11 +292,9 @@ class Main extends Component {
                                             
                                             this.state.messages.map((message, index) => {
                                                 if (this.state.selectedGroupID === message.gid) {
-                                                return (
-                                                    
-                                                    <Message name = {message.user.username} id={index} key={message._id} user={message.user} message={message.content} isMe={message.uid === cookies.get('uid')} />
-                                                    
-                                                );
+                                                    return (
+                                                        <Message name = {message.user.username} id={index} key={message._id} user={message.user} message={message.content} isMe={message.uid === cookies.get('uid')} />
+                                                    );
                                                 }   
                                             })
                                             // <MessageList

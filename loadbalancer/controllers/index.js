@@ -11,6 +11,7 @@ postPaths = [
   '/joinGroup',
   '/leaveGroup',
   '/sendMessage',
+  '/setReadAt',
 ];
 
 getPaths = [
@@ -18,6 +19,7 @@ getPaths = [
   '/getAllGroup',
   '/getAllMessage',
   '/getUnreadMessage',
+  '/viewUnreadMessages',
 ];
 
 postPaths.map(path => {
