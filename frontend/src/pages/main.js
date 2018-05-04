@@ -40,40 +40,67 @@ class Main extends Component {
         newGroupName: '',
         selectedGroupID: '',
         selectGroupName: '', 
+        messageOrder: -1,
     };
     componentDidMount() {
-        this.socket.on('chat', (result) => {
-            let messages = this.state.messages.slice();
-            let lastMessage = this.state.lastMessage;
-            //  message = { ...message, user: { uid: message.uid , username:message.user.name} };
-            messages.push( { ...result.message ,user: { uid: result.message.uid , username:result.message.user.name} });
-            lastMessage[result.message.gid] = result.message.content;
-            this.setState({ messages, lastMessage });
+        axios.get(IpList.loadBalancer + '/getMessageOrder').then((res) => {
             
-            if(this.state.selectedGroupID == result.message.gid) {
-                axios.post(IpList.loadBalancer + '/setReadAt', {
-                    uid: cookies.get('uid'),
-                    gid: result.message.gid
-                    
-                }).then(() => {
-                    console.log('set');
-                    this.getUnread(result.message.gid);
+            this.setState({messageOrder: res.data.messageOrder}, () => {
+
+                this.socket.on('chat', (result) => {
+
+                    if (this.state.messageOrder + 1 == result.messageOrder) {
+
+                        this.setState({
+                            messageOrder: result.messageOrder
+                        });
+
+                        let messages = this.state.messages.slice();
+                        let lastMessage = this.state.lastMessage;
+                        //  message = { ...message, user: { uid: message.uid , username:message.user.name} };
+                        messages.push({ ...result.message,
+                            user: {
+                                uid: result.message.uid,
+                                username: result.message.user.name
+                            }
+                        });
+                        lastMessage[result.message.gid] = result.message.content;
+                        this.setState({
+                            messages,
+                            lastMessage
+                        });
+
+                        if (this.state.selectedGroupID == result.message.gid) {
+                            axios.post(IpList.loadBalancer + '/setReadAt', {
+                                uid: cookies.get('uid'),
+                                gid: result.message.gid
+
+                            }).then(() => {
+
+                                this.getUnread(result.message.gid);
+                            });
+                        }
+
+                        this.getUnread(result.message.gid);
+                        this.getJoinedGroups();
+                    } else {
+                        this.getAllGroup();
+                        this.getJoinedGroups();
+                    }
                 });
-            }
-            
-            this.getUnread(result.message.gid);
-            this.getJoinedGroups();
+            });
         });
+
         this.getAllGroup();
         this.getJoinedGroups();
-        console.log("! "+cookies.get('uid'));
+
         const node = this.refs.trackerRef;
         node && node.scrollIntoView({block: "end"})
 
     }
 
     getUnread = (gid) => {
-        console.log(gid)
+
         axios.get(IpList.loadBalancer + '/viewUnreadMessages?uid=' + cookies.get('uid') + '&gid=' + gid).then((res) => {
             let unread = this.state.unread;
             
@@ -87,7 +114,7 @@ class Main extends Component {
     getAllUser = () => {
         axios.get(IpList.loadBalancer + '/getAllGroup').then(function (response) {
             this.setState({ groupList: response.data }, this.getMessage)
-            console.log(response.data);
+
         }.bind(this)).catch(function (err) {
             console.error(err);
         });
@@ -95,7 +122,7 @@ class Main extends Component {
 
     getJoinedGroups = () => {
         axios.get(IpList.loadBalancer + `/getUserInfo?uid=${cookies.get('uid')}`).then((res) => {
-            console.log('WTF', res.data);
+
             const myData = res.data.groups.length ? [...res.data.groups].sort((x, y) => x.name.localeCompare(y.name) ) : [];
             this.setState({
                 joinedGroups: myData
@@ -106,7 +133,7 @@ class Main extends Component {
 
     selectGroup = (gid, gname) => {
         // console.log("!! " + this.state.isJoin[gid])
-        console.log("fM", gid)
+
         const GID = gid;
         this.setState({
             selectedGroupID: GID,
@@ -120,12 +147,12 @@ class Main extends Component {
             // console.log('JOIN GROUP SUCCESS');
 
             this.getJoinedGroups();
-            console.log(gid)
+
             axios.post(IpList.loadBalancer + '/setReadAt', {
                 uid: cookies.get('uid'),
                 gid: GID
             }).then(() => {
-                console.log('set');
+
                 this.getUnread(GID);
 
             });
@@ -135,7 +162,7 @@ class Main extends Component {
                 uid: cookies.get('uid'),
                 gid: GID
             }).then(() => {
-                console.log('set');
+
                 this.getUnread(GID);
             });
         });
@@ -146,39 +173,36 @@ class Main extends Component {
         let messages = this.state.messages;
         await this.state.groupList.map((group) => {
             // console.log('sdasdsadsadsadsa')
-            console.log(cookies.get('uid'))
+
             axios.get(IpList.loadBalancer + '/viewUnreadMessages?uid=' + cookies.get('uid') + '&gid=' + group._id).then((res) => {
-                console.log(res)
+
                 axios.get(IpList.loadBalancer + '/getAllMessage', { params: { gid: group._id } }).then(function (response) {
-                    console.log(response.data);
+
                     response.data.messages.map((message) => {
-                        console.log(message);
+
                         message = { ...message, user: { uid: message.uid , username:message.user.name} };
                         messages.push(message);
                     })
                     let lastMessage = this.state.lastMessage;
                     let unread = this.state.unread;
-                    console.log(unread);
+
                     unread[group._id] = res.data.messages.length;
                     lastMessage[group._id] = response.data.messages[response.data.messages.length - 1].content;
-                    console.log(lastMessage, unread);
+
                     this.setState({ lastMessage, unread });
                 }.bind(this)).catch(function (err) {
                     console.error(err);
                 });
-            }, (err) => { console.log(err)});
+            }, (err) => { console.error(err)});
         })
-        console.log(messages);
+
         this.setState({ messages });
     }
 
     getAllGroup = () => {
         axios.get(IpList.loadBalancer + '/getAllGroup').then(function (response) {
-            console.log( response.data);
             const myData = [...response.data].sort((x, y) => x.name.localeCompare(y.name))
-            console.log(myData);
             this.setState({ groupList: myData }, this.getMessage);
-            console.log('GET GROUP SUCCESS');
 
         }.bind(this)).catch(function (err) {
             console.error(err);
@@ -223,7 +247,7 @@ class Main extends Component {
             uid: cookies.get('uid'),
             gname: this.state.newGroupName,
         }).then(function (response) {
-            console.log('CREATE GROUP SUCCESS');
+            
         }).catch(function (err) {
             console.error(err);
         });
@@ -248,9 +272,9 @@ class Main extends Component {
             gid: this.state.selectedGroupID, // CHANGE gid MANUALLY
             content: this.state.text 
         }).then(function (response) {
-            console.log('SUCCESS');
+
         }).catch(function (err) {
-            console.log(err);
+            console.error(err);
         });
 
         this.setState({ text: '' });   

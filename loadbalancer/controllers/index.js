@@ -20,6 +20,7 @@ getPaths = [
   '/getAllMessage',
   '/getUnreadMessage',
   '/viewUnreadMessages',
+  '/getMessageOrder',
 ];
 
 postPaths.map(path => {
@@ -31,7 +32,7 @@ postPaths.map(path => {
           console.log("primary backend is back and taking over the system");
           activeBackend = 1;
         }
-        if (path === '/sendMessage') io.emit('chat', { message: response.data.message });
+        if (path === '/sendMessage') io.emit('chat', response.data);
         console.log('From: primary backend');
         res.send(response.data);
       })
@@ -45,7 +46,7 @@ postPaths.map(path => {
               console.log("secondary backend is taking over the system");
               activeBackend = 2;
             }
-            if (path === '/sendMessage') io.emit('chat', { message: response.data.message });
+            if (path === '/sendMessage') io.emit('chat', response.data);
             console.log('From: secondary backend');
             res.send(response.data);
           })

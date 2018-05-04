@@ -248,7 +248,9 @@ router.post('/sendMessage', function (req, res) {
           User.find({ _id: message_model.uid }, (err, users) => {
             let message = result._doc;
             message.user = users[0];
-            res.send({ message: message });
+            Message.find({}).then(allMessages => {
+              res.send({ message: message, messageOrder: allMessages.length });
+            });
           });
         }
       })
@@ -274,6 +276,12 @@ router.post("/setReadAt", function (req, res) {
         }
       });
     }
+  });
+});
+
+router.get('/getMessageOrder', function (req, res) {
+  Message.find({}).then(allMessages => {
+    return res.send({messageOrder: allMessages.length});
   });
 });
 
