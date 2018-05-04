@@ -56,7 +56,6 @@ class Main extends Component {
         console.log("! "+cookies.get('uid'));
         const node = this.refs.trackerRef;
         node && node.scrollIntoView({block: "end"})
-        
 
     }
     getAllUser = () => {
@@ -82,10 +81,7 @@ class Main extends Component {
             }.bind(this)).catch(function (err) {
                 console.error(err);
             });
-
-             
         }
-        
         this.setState({ selectedGroupID: gid, selectGroupName: gname });
         console.log(gid);
     }
@@ -94,6 +90,7 @@ class Main extends Component {
         let messages = this.state.messages;
         await this.state.groupList.map((group) => {
             // console.log('sdasdsadsadsadsa')
+            console.log(cookies.get('uid'))
             axios.get(IpList.loadBalancer + '/viewUnreadMessages?uid=' + cookies.get('uid') + '&gid=' + group._id).then((res) => {
                 console.log(res)
                 axios.get(IpList.loadBalancer + '/getAllMessage', { params: { gid: group._id } }).then(function (response) {
@@ -139,10 +136,7 @@ class Main extends Component {
     handleChange = (event) => this.setState({ text: event.target.value });
     
     onLogOutClick = () => {
-        cookies.remove('isAuthen');
-        cookies.remove('username');
-        cookies.remove('uid');
-        window.location.assign('');
+        window.location.assign('logout');
     };
 
     createGroup = () => {

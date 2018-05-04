@@ -109,10 +109,12 @@ router.post('/leaveGroup', function (req, res) {
 
 // result: groups (array of object)
 router.get('/getAllGroup', function (req, res) {
+  
   Group.find({}, function (err, groups) {
     if (err) {
       throw err;
     }else {
+      console.log('fmm', groups);
       return res.send(groups);
     }
   });
@@ -175,9 +177,9 @@ router.get('/viewUnreadMessages', function (req, res) {
   var uid = req.query.uid;
   var gid = req.query.gid;
   var query = { uid: uid, gid: gid };
-  console.log(query);
+  console.log('fm',query);
   var read_at;
-  Join.findOne(query, function (err, join) {
+  Join.find(query, function (err, join) {
     if (err) {
       console.log('INVALID JOIN DATA');
       throw err;
