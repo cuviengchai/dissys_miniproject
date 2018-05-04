@@ -51,12 +51,35 @@ class Main extends Component {
             console.log(lastMessage[result.message.uid], result.message.uid);
             this.setState({ messages, lastMessage });
             console.log(result.message);
+            
+            if(this.state.selectedGroupID == result.message.gid) {
+                axios.post(IpList.loadBalancer + '/setReadAt', {
+                    uid: cookies.get('uid'),
+                    gid: result.message.gid
+                    
+                }).then(() => {
+                    console.log('set');
+                    this.getUnread(result.message.gid);
+                });
+            }
+            
+            this.getUnread(result.message.gid);
         });
         this.getAllGroup();
         console.log("! "+cookies.get('uid'));
         const node = this.refs.trackerRef;
         node && node.scrollIntoView({block: "end"})
 
+    }
+
+    getUnread = (gid) => {
+        axios.get(IpList.loadBalancer + '/viewUnreadMessages?uid=' + cookies.get('uid') + '&gid=' + gid).then((res) => {
+            let unread = this.state.unread;
+            unread[gid] = res.data.messages.length;
+            this.setState({
+                unread
+            });
+        })
     }
     getAllUser = () => {
         axios.get(IpList.loadBalancer + '/getAllGroup').then(function (response) {
@@ -68,18 +91,21 @@ class Main extends Component {
     }
 
     selectGroup = (gid, gname) => {
-        // console.log("!! " + this.state.isJoin[gid]);
+        // console.log("!! " + this.state.isJoin[gid])
+        
         if( this.state.isJoin[gid] == undefined ){
             var nJ = this.state.isJoin ; 
             axios.post(IpList.loadBalancer + '/joinGroup',{uid :cookies.get('uid'), gid}).then(function (response) {
                 console.log('JOIN GROUP SUCCESS');
                 nJ[gid] = 1 ; 
                 this.setState( {isJoin : nJ})
-                axios.post(IpList.loadBalancer + '/setReadAt', { uid: cookies.get('uid'), gid }).then(() => {
-                    console.log('set');
-                });
             }.bind(this)).catch(function (err) {
                 console.error(err);
+            });
+
+            axios.post(IpList.loadBalancer + '/setReadAt', { uid: cookies.get('uid'), gid }).then(() => {
+                console.log('set');
+                this.getUnread(gid);
             });
         }
         this.setState({ selectedGroupID: gid, selectGroupName: gname });

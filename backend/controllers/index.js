@@ -87,12 +87,22 @@ router.post('/joinGroup', function (req, res) {
     }
     else {
       console.log("FOUND GROUP");
-      var join_model = new Join({ uid: req.body.uid, gid: req.body.gid, read_at: 0 });
-      join_model.save(function (err) {
-        if (err) throw err;
-        else
-          return res.send("EXISTED");
-      })
+      Join.findOne({ uid: req.body.uid, gid: req.body.gid, }, (err, join) => {
+        if(join) {
+          return res.send('EXISTED');
+        }
+
+        var join_model = new Join({
+          uid: req.body.uid,
+          gid: req.body.gid,
+          read_at: 0
+        });
+        join_model.save(function (err) {
+          if (err) throw err;
+          else
+            return res.send("EXISTED");
+        })
+      });
     }
   })
 });
@@ -186,34 +196,37 @@ router.get('/viewUnreadMessages', function (req, res) {
     }
     else
       console.log(join);
-    read_at = join.read_at;
-    Message.find({ send_at: { $gt: read_at } }).sort('send_at').exec(function (err, messages) {
-      if (err) throw err
-      else {
-        let promises = [];
+    
+    if(join.length) {
+      read_at = join[0].read_at;
+      Message.find({ send_at: { $gt: read_at } }).sort('send_at').exec(function (err, messages) {
+        if (err) throw err
+        else {
+          let promises = [];
 
-        promises = messages.map(message => {
-          return new Promise((resolve, reject) => {
-            User.findById(message.uid, (err, user) => {
-              if(err) {
-                console.error(err);
-                reject()
-              }
-              else {
-                message._doc.user = user;
-                resolve();
-              }
+          promises = messages.map(message => {
+            return new Promise((resolve, reject) => {
+              User.findById(message.uid, (err, user) => {
+                if(err) {
+                  console.error(err);
+                  reject()
+                }
+                else {
+                  message._doc.user = user;
+                  resolve();
+                }
+              });
             });
           });
-        });
 
-        Promise.all(promises).then(() => {
-          res.send({messages: messages});
-        }).catch((err) => {
-          res.send('FAIL');
-        });
-      }
-    });
+          Promise.all(promises).then(() => {
+            res.send({messages: messages});
+          }).catch((err) => {
+            res.send('FAIL');
+          });
+        }
+      });
+    }
   });
 });
 
