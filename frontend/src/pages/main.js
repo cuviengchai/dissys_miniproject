@@ -35,6 +35,7 @@ class Main extends Component {
 
         },
         groupList: [],
+        joinedGroups: [],
         isShowingModal: false,
         newGroupName: '',
         selectedGroupID: '',
@@ -64,8 +65,10 @@ class Main extends Component {
             }
             
             this.getUnread(result.message.gid);
+            this.getJoinedGroups();
         });
         this.getAllGroup();
+        this.getJoinedGroups();
         console.log("! "+cookies.get('uid'));
         const node = this.refs.trackerRef;
         node && node.scrollIntoView({block: "end"})
@@ -73,14 +76,17 @@ class Main extends Component {
     }
 
     getUnread = (gid) => {
+        console.log(gid)
         axios.get(IpList.loadBalancer + '/viewUnreadMessages?uid=' + cookies.get('uid') + '&gid=' + gid).then((res) => {
             let unread = this.state.unread;
+            
             unread[gid] = res.data.messages.length;
             this.setState({
                 unread
             });
         })
     }
+    
     getAllUser = () => {
         axios.get(IpList.loadBalancer + '/getAllGroup').then(function (response) {
             this.setState({ groupList: response.data }, this.getMessage)
@@ -90,27 +96,54 @@ class Main extends Component {
         });
     }
 
+    getJoinedGroups = () => {
+        axios.get(IpList.loadBalancer + `/getUserInfo?uid=${cookies.get('uid')}`).then((res) => {
+            console.log(res.data);
+            const myData = [...res.data.groups].sort((x, y) => x.name.localeCompare(y.name) )
+            this.setState({
+                joinedGroups: myData
+            });
+        });
+    }
+    
+
     selectGroup = (gid, gname) => {
         // console.log("!! " + this.state.isJoin[gid])
-        
-        if( this.state.isJoin[gid] == undefined ){
-            var nJ = this.state.isJoin ; 
-            axios.post(IpList.loadBalancer + '/joinGroup',{uid :cookies.get('uid'), gid}).then(function (response) {
-                console.log('JOIN GROUP SUCCESS');
-                nJ[gid] = 1 ; 
-                this.setState( {isJoin : nJ})
-            }.bind(this)).catch(function (err) {
-                console.error(err);
-            });
+        console.log("fM", gid)
+        const GID = gid;
+        this.setState({
+            selectedGroupID: GID,
+            selectGroupName: gname
+        });
 
-            axios.post(IpList.loadBalancer + '/setReadAt', { uid: cookies.get('uid'), gid }).then(() => {
+        axios.post(IpList.loadBalancer + '/joinGroup', {
+            uid: cookies.get('uid'),
+            gid: GID 
+        }).then(function (response) {
+            // console.log('JOIN GROUP SUCCESS');
+
+            this.getJoinedGroups();
+            console.log(gid)
+            axios.post(IpList.loadBalancer + '/setReadAt', {
+                uid: cookies.get('uid'),
+                gid: GID
+            }).then(() => {
                 console.log('set');
-                this.getUnread(gid);
+                this.getUnread(GID);
+
             });
-        }
-        this.setState({ selectedGroupID: gid, selectGroupName: gname });
-        console.log(gid);
+        }.bind(this)).catch(function (err) {
+            console.error(err);
+            axios.post(IpList.loadBalancer + '/setReadAt', {
+                uid: cookies.get('uid'),
+                gid: GID
+            }).then(() => {
+                console.log('set');
+                this.getUnread(GID);
+            });
+        });
     }
+    
 
     getMessage = async () => {
         let messages = this.state.messages;
@@ -145,7 +178,9 @@ class Main extends Component {
     getAllGroup = () => {
         axios.get(IpList.loadBalancer + '/getAllGroup').then(function (response) {
             console.log( response.data);
-            this.setState({ groupList: response.data }, this.getMessage);
+            const myData = [...response.data].sort((x, y) => x.name.localeCompare(y.name))
+            console.log(myData);
+            this.setState({ groupList: myData }, this.getMessage);
             console.log('GET GROUP SUCCESS');
 
         }.bind(this)).catch(function (err) {
@@ -154,12 +189,25 @@ class Main extends Component {
         });
     }
 
-  componentDidUpdate() {
-    const node = this.refs.trackerRef;
-    node && node.scrollIntoView({block: "end"})
-  }
+    componentDidUpdate() {
+        const node = this.refs.trackerRef;
+        node && node.scrollIntoView({block: "end"})
+    }
 
     handleChange = (event) => this.setState({ text: event.target.value });
+
+    leaveGroup = (gid) => {
+        axios.post(IpList.loadBalancer + '/leaveGroup', {
+            uid: cookies.get('uid'),
+            gid: gid,
+        }).then((result) => {
+            this.getJoinedGroups();
+            this.setState({
+                selectedGroupID: '',
+                selectGroupName: '',
+            });
+        });
+    }
     
     onLogOutClick = () => {
         window.location.assign('logout');
@@ -200,16 +248,7 @@ class Main extends Component {
             console.log(err);
         });
 
-        this.setState({ text: '' });
-        // console.log("FF");
-        // axios.get(IpList.loadBalancer + '/getUserInfo', {uid:"5ae89ac759be59648e4ddd11"}).then(function (response) {
-        //     console.log("START");
-        //     console.log(response.data);
-        // }.bind(this)).catch(function (err) {
-        //     // console.error(err);
-        //     console.log("fail");
-        // });
-       
+        this.setState({ text: '' });   
     }
 
     render() {
@@ -275,19 +314,46 @@ class Main extends Component {
                                     </div>
                                 </div>
                             </nav>
-                            <div className="myInner" id="inner">
+                            <div className="myInner" id="inner" style={{ display: 'flex', flexDirection: 'column' }} >
+                                <div style={{ backgroundColor: 'rgba(0,0,0,0.1)', width: '100%', padding: 8 }} >JOINED GROUPS</div>
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', display: 'block', overflow: 'scroll' }}>
                                 {
-                                    this.state.groupList.map( (group) => {
+                                    this.state.joinedGroups.map((group) => {
                                         return (<GroupRow 
                                                     name={group.name}
                                                     gid={group._id} 
                                                     groupNumber={this.state.unread[group._id]} 
                                                     isSelected={this.state.selectedGroupID == group._id}
                                                     lastMessage={this.state.lastMessage[group._id] || '...'} 
-                                                    onClick={this.selectGroup}
+                                                    onClick={() => this.selectGroup(group._id)}
                                                 />);
-                                    })
+                                    })    
                                 }
+                                </div>
+                                <div style={{ backgroundColor: 'rgba(0,0,0,0.1)', width: '100%', padding: 8 }} >ALL GROUPS</div>
+                                < div style = {
+                                    {
+                                        height: '50%',
+                                        display: 'block',
+                                        overflow: 'scroll',
+                                        flex: 1, 
+                                        display: 'flex', 
+                                        flexDirection: 'column',
+                                    }
+                                } >
+                                {
+                                    this.state.groupList.map((group) => {
+                                        return (<GroupRow 
+                                                    name={group.name}
+                                                    gid={group._id} 
+                                                    groupNumber={this.state.unread[group._id]} 
+                                                    isSelected={false}
+                                                    lastMessage={this.state.lastMessage[group._id] || '...'} 
+                                                    onClick={() => this.selectGroup(group._id)}
+                                                />);
+                                    })    
+                                }
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -297,7 +363,37 @@ class Main extends Component {
                                 <div className="default-nav">
                                     <div className="main-nav">
                                         <div className="main-nav-item"><a className="main-nav-item-link" href="#">{this.state.selectGroupName}</a></div>
-                                        <div className="options"></div>
+                                        <div className="options">
+                                        {
+                                            this.state.selectedGroupID != '' &&
+                                            <button 
+                                                style={{ 
+                                                    backgroundColor: 'gray', 
+                                                    width: '128px', 
+                                                    height: '32px', 
+                                                    border: '0px solid',
+                                                    borderRadius: '16px'
+                                                }}
+                                                onClick={() => this.leaveGroup(this.state.selectedGroupID)}
+                                            >
+                                                Leave group
+                                                {                                  
+                                                    this.state.isShowingModal &&
+                                                    <ModalContainer onClose={this.handleClose}>
+                                                        <ModalDialog onClose={this.handleClose}>
+                                                            <div className="login">
+                                                                <h2 className="login-header">Leave Group</h2>
+                                                                <form className="login-container">
+                                                                    <p><input type="text" placeholder="Username" value={this.state.newGroupName} onChange={this.handleCreateGroup}/></p>
+                                                                    <p><input type="submit" value="OK" onClick={this.createGroup} /></p>
+                                                                </form>
+                                                            </div>
+                                                        </ModalDialog>
+                                                    </ModalContainer>
+                                                }
+                                            </button>
+                                        }
+                                        </div>
                                     </div>
                                 </div>
                             </nav>
@@ -317,15 +413,10 @@ class Main extends Component {
                                                     );
                                                 }   
                                             })
-                                            // <MessageList
-                                            //     items={this.state.messages}
-                                            //     onScrolled={e => console.log('the list was scrolled!')}
-                                            //     onScrolledTop={e => alert('scrolled to top!')}
-                                            // />
                                         }
 
 
-        <div style={{height: '30px'}} id='#tracker' ref="trackerRef"></div>
+                                <div style={{height: '30px'}} id='#tracker' ref="trackerRef"></div>
                                     </div>
                                     
                                     <div className="bottom" id="bottom">

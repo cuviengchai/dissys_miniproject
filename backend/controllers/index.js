@@ -33,16 +33,19 @@ router.post('/auth', function (req, res) {
 router.get('/getUserInfo', function (req, res) {
   Join.find({ uid: req.query.uid }, function (err, joins) {
     var result = [];
-    console.log(joins);
-    joins.map((join, index) => {
-      console.log(join);
-      Group.find({ _id: join.gid }, function (err, groups) {
+    var promises;
+    promises = joins.map((join, index) => 
+      Group.find({
+        _id: join.gid
+      }).then(function (groups) {
         result.push(groups[0]);
-        if (index === joins.length - 1) {
-          res.send(result)
-        }
       })
+    );
+
+    Promise.all(promises).then(() => {
+      res.send({groups: result});
     });
+
   });
 });
 
@@ -199,7 +202,7 @@ router.get('/viewUnreadMessages', function (req, res) {
     
     if(join.length) {
       read_at = join[0].read_at;
-      Message.find({ send_at: { $gt: read_at } }).sort('send_at').exec(function (err, messages) {
+      Message.find({ send_at: { $gt: read_at }, gid: req.query.gid }).sort('send_at').exec(function (err, messages) {
         if (err) throw err
         else {
           let promises = [];
