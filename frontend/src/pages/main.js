@@ -47,11 +47,8 @@ class Main extends Component {
             let lastMessage = this.state.lastMessage;
             //  message = { ...message, user: { uid: message.uid , username:message.user.name} };
             messages.push( { ...result.message ,user: { uid: result.message.uid , username:result.message.user.name} });
-            console.log(result);
             lastMessage[result.message.gid] = result.message.content;
-            console.log(lastMessage[result.message.uid], result.message.uid);
             this.setState({ messages, lastMessage });
-            console.log(result.message);
             
             if(this.state.selectedGroupID == result.message.gid) {
                 axios.post(IpList.loadBalancer + '/setReadAt', {
@@ -98,8 +95,8 @@ class Main extends Component {
 
     getJoinedGroups = () => {
         axios.get(IpList.loadBalancer + `/getUserInfo?uid=${cookies.get('uid')}`).then((res) => {
-            console.log(res.data);
-            const myData = [...res.data.groups].sort((x, y) => x.name.localeCompare(y.name) )
+            console.log('WTF', res.data);
+            const myData = res.data.groups.length ? [...res.data.groups].sort((x, y) => x.name.localeCompare(y.name) ) : [];
             this.setState({
                 joinedGroups: myData
             });
@@ -194,7 +191,15 @@ class Main extends Component {
         node && node.scrollIntoView({block: "end"})
     }
 
-    handleChange = (event) => this.setState({ text: event.target.value });
+    handleChange = (event) => {
+        if(event.target.value[event.target.value - 1] !== '\n') {
+            this.setState({ text: event.target.value });
+        } else {
+            this.setState({
+                text: ''
+            });
+        }
+    };
 
     leaveGroup = (gid) => {
         axios.post(IpList.loadBalancer + '/leaveGroup', {
@@ -420,7 +425,7 @@ class Main extends Component {
                                     </div>
                                     
                                     <div className="bottom" id="bottom">
-                                        <textarea className="input" id="input" value={this.state.text} onChange={this.handleChange} />
+                                        <input className="input" id="input" value={this.state.text} onChange={this.handleChange} onKeyDown={(e) => { e.keyCode == 13 && this.sendText() }} />
                                         <div className="send" id="send" onClick={this.sendText}>
                                             <div style={{ width: '100%', height: '100%', paddingTop: '4px' }}>
                                                 <div 

@@ -32,19 +32,27 @@ router.post('/auth', function (req, res) {
 // result: groups (array of object)
 router.get('/getUserInfo', function (req, res) {
   Join.find({ uid: req.query.uid }, function (err, joins) {
-    var result = [];
-    var promises;
-    promises = joins.map((join, index) => 
-      Group.find({
-        _id: join.gid
-      }).then(function (groups) {
-        result.push(groups[0]);
-      })
-    );
+    if(err) {
+      console.error(err);
+      res.send({groups: []});
+    }
+    else {
+      var result = [];
+      var promises;
+      promises = joins.map((join, index) =>
+        Group.find({
+          _id: join.gid
+        }).then(function (groups) {
+          if (groups.length) result.push(groups[0]);
+        })
+      );
 
-    Promise.all(promises).then(() => {
-      res.send({groups: result});
-    });
+      Promise.all(promises).then(() => {
+        res.send({
+          groups: result
+        });
+      });
+    }
 
   });
 });
@@ -58,7 +66,7 @@ router.get('/getUserInfo', function (req, res) {
 router.post('/createGroup', function (req, res) {
   var query = { name: req.body.gname };
   Group.find(query, function (err, groups) {
-    if (err) console.log("group finding error");
+    if (err) console.error("group finding error");
     else if (groups.length == 0) {
       var group_model = new Group(query);
       group_model.save(function (err, group) {
@@ -66,13 +74,11 @@ router.post('/createGroup', function (req, res) {
         var join_model = new Join({ uid: req.body.uid, gid: group.id, read_at: 0 });
         join_model.save(function (err) {
           if (err) throw err;
-          console.log("GROUP CREATED BY AN UID");
           return res.send({ "gid": group.id });
         })
       })
     }
     else {
-      console.log("GROUP ALREADY CREATED");
       return res.send({ "gid": groups[0].id });
     }
   })
@@ -85,11 +91,9 @@ router.post('/joinGroup', function (req, res) {
   Group.find(query, function (err, groups) {
     if (err) throw err
     if (groups.length == 0) {
-      console.log("NOT FOUND GROUP");
       return res.send("NOT FOUND");
     }
     else {
-      console.log("FOUND GROUP");
       Join.findOne({ uid: req.body.uid, gid: req.body.gid, }, (err, join) => {
         if(join) {
           return res.send('EXISTED');
@@ -127,7 +131,6 @@ router.get('/getAllGroup', function (req, res) {
     if (err) {
       throw err;
     }else {
-      console.log('fmm', groups);
       return res.send(groups);
     }
   });
@@ -138,7 +141,6 @@ router.get('/getAllGroup', function (req, res) {
 router.get('/getGroupUser', function (req, res) {
   result = []
   Join.find({ gid: req.query.gid }, function (err, joins) {
-    console.log(joins);
     if (err) {
       throw err
     } else {
@@ -153,7 +155,6 @@ router.get('/getGroupUser', function (req, res) {
 // query: [gid (objectId)]
 // result: messages (array of object)
 router.get("/getAllMessage", function (req, res) {
-  console.log(req.query);
   Message.find({ gid: req.query.gid }, function (err, messages) {
 
     if (err) res.send('FAIL');
@@ -190,15 +191,12 @@ router.get('/viewUnreadMessages', function (req, res) {
   var uid = req.query.uid;
   var gid = req.query.gid;
   var query = { uid: uid, gid: gid };
-  console.log('fm',query);
   var read_at;
   Join.find(query, function (err, join) {
     if (err) {
-      console.log('INVALID JOIN DATA');
       throw err;
     }
     else
-      console.log(join);
     
     if(join.length) {
       read_at = join[0].read_at;
@@ -261,9 +259,9 @@ router.post('/sendMessage', function (req, res) {
 // Body: [uid (objectId), gid (objectId)]
 // Result: [“SUCCESS” / “ERROR”]
 router.post("/setReadAt", function (req, res) {
-  console.log("READ AT METHOD")
+
   Join.findOne({ uid: req.body.uid, gid: req.body.gid }, function (err, joins) {
-    console.log(joins)
+
     if (err) throw err
     else if (joins == null) return res.send("ERROR");
     else {
@@ -271,7 +269,7 @@ router.post("/setReadAt", function (req, res) {
       joins.save(function (err, update) {
         if (err) throw err
         else {
-          console.log(update);
+
           return res.send("SUCCESS");
         }
       });
