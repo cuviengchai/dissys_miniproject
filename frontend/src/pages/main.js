@@ -287,7 +287,7 @@ class Main extends Component {
                                             this.state.messages.map((message, index) => {
                                                 if (this.state.selectedGroupID === message.gid) {
                                                     return (
-                                                        <Message name = {message.user.username} id={index} key={message._id} user={message.user} message={message.content} isMe={message.uid === cookies.get('uid')} />
+                                                        <Message name = {message.user.username} sentAt={message.send_at} id={index} key={message._id} user={message.user} message={message.content} isMe={message.uid === cookies.get('uid')} />
                                                     );
                                                 }   
                                             })
